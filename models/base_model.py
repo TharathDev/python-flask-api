@@ -12,9 +12,10 @@ class BaseModel:
     def _get_query(self):
         return self._session.query(self.__class__)
 
-    def jsonify(self, model, schema, **kwargs):
-        _schema = schema()
-        return _schema.dump(model, **kwargs)
+    def jsonify(self, model=None, Schema=None, **kwargs):
+        _model = model if model else self
+        _schema = Schema()
+        return _schema.dump(_model, **kwargs)
 
     def get_all(self, expression={}):
         search = self._query.filter_by(
@@ -36,6 +37,16 @@ class BaseModel:
         self._session.add(self)
         self._commit()
 
+    def update(self):
+        self._query.update(
+            {
+                getattr(self.__class__, k): getattr(self, k)
+                for k in self.__dict__.keys()
+                if k not in ["_sa_instance_state", "_session", "_query"]
+            }
+        )
+        self._commit()
+
     def delete(self):
-        self._session.delete(self)
+        self._query.filter(self.__class__.id == self.id).delete()
         self._commit()

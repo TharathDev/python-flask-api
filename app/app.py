@@ -1,9 +1,14 @@
 from flask import Flask, Blueprint
+from flask_jwt_extended import JWTManager
 
 from routes import *
 from db import engine, Base
+from .config import Config
 
 app = Flask(__name__)
+app.config.from_object(Config)
+
+jwt = JWTManager(app)
 
 @app.route('/', methods=['GET'])
 def home():
